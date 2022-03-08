@@ -1,6 +1,15 @@
 <script setup>
-import {ref,onMounted} from 'vue'
+import {ref,onMounted,computed} from 'vue'
+import {useStore} from "vuex"
 
+import Field from "./components/Field.vue"
+import AddTodo from "./components/AddTodo.vue"
+
+const store = useStore()
+const todos = store.getters.todos
+const todosReverse = computed(() => {
+  return [...todos].reverse()
+})
 const isOpen = ref(false)
 const theme  = ref('dark')
 let body = null
@@ -17,6 +26,23 @@ const toggleTheme = () => {
     theme.value = 'dark'
     body.style.backgroundColor = 'hsl(235, 21%, 11%)'
   }
+}
+
+const checkAllTodo = () => {
+  isOpen.value = !isOpen.value
+  console.log('ok')
+}
+
+const addNewTodo = (todo) => {
+  store.dispatch('addTodo',todo)
+}
+
+const checkOne = (todo) => {
+  store.dispatch('setTodo',todo.id)
+}
+
+const deleteOne = (id) => {
+  store.dispatch('deleteTodo',id)
 }
 
 </script>
@@ -37,35 +63,15 @@ const toggleTheme = () => {
       </div>
     </nav>
 
-    <form class="header__form container" :class="theme === 'light' ? 'header__form--light':''">
-      <input type="checkbox" id="btn" hidden>
-      <label for="btn" @click="isOpen = !isOpen">
-        <svg v-if="isOpen" xmlns="http://www.w3.org/2000/svg" width="11" height="9"><path fill="none" stroke="#FFF" stroke-width="2" d="M1 4.304L3.696 7l6-6"/></svg>
-      </label>
-      <input type="text" placeholder="Create a new todo...">
-    </form>
+    <!-- permet d'ajouter une nouvelle tâche à faire dans mon tab[] :todos -->
+    <AddTodo @add-todo="addNewTodo" @check-all="checkAllTodo" :is-open="isOpen" :theme="theme"/>
 
   </div>
 
   <div class="content ">
     <form class="card container" :class="theme === 'light' ? 'card--light':''">
 
-      <div class="card__field card__field--completed">
-        <input type="checkbox" id="btn2" hidden>
-        <label for="btn2">
-          <svg xmlns="http://www.w3.org/2000/svg" width="11" height="9"><path fill="none" stroke="#FFF" stroke-width="2" d="M1 4.304L3.696 7l6-6"/></svg>
-        </label>
-        <div class="text">my toto task 1</div>
-        <svg class="croix" xmlns="http://www.w3.org/2000/svg" width="18" height="18"><path fill="currentColor" fill-rule="evenodd" d="M16.97 0l.708.707L9.546 8.84l8.132 8.132-.707.707-8.132-8.132-8.132 8.132L0 16.97l8.132-8.132L0 .707.707 0 8.84 8.132 16.971 0z"/></svg>
-      </div>
-      <div class="card__field">
-        <input type="checkbox" id="btn3" hidden>
-        <label for="btn3">
-          <svg xmlns="http://www.w3.org/2000/svg" width="11" height="9"><path fill="none" stroke="#FFF" stroke-width="2" d="M1 4.304L3.696 7l6-6"/></svg>
-        </label>
-        <div class="text">my toto task 2</div>
-        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18"><path fill="#494C6B" fill-rule="evenodd" d="M16.97 0l.708.707L9.546 8.84l8.132 8.132-.707.707-8.132-8.132-8.132 8.132L0 16.97l8.132-8.132L0 .707.707 0 8.84 8.132 16.971 0z"/></svg>
-      </div>
+      <Field @delete-todo="deleteOne" @check-todo="checkOne" v-for="todo in todosReverse" :key="todo.id" :todo="todo" />
 
       <div class="card__field card__field--end">
         <div class="complete">5 items left</div>
